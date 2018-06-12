@@ -9,13 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Tokens;
-using OpenIdConnectProtocols = Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AnotherNameSpace
 {
     public static class AuthValidator
     {
-        private static readonly IConfigurationManager<OpenIdConnectProtocols.OpenIdConnectConfiguration> _configurationManager;
+        private static readonly IConfigurationManager<OpenIdConnectConfiguration> _configurationManager;
 
         private static readonly string ISSUER = "https://sergiotest.eu.auth0.com//";
         private static readonly string AUDIENCE = "http://functionhellonamevalidatetokens.azurewebsites.net/"; // TODO - enter your audience here. i.e. "https://api.wolftracker.com"
@@ -24,9 +24,9 @@ namespace AnotherNameSpace
         {
             var documentRetriever = new HttpDocumentRetriever { RequireHttps = ISSUER.StartsWith("https://") };
 
-            _configurationManager = new ConfigurationManager<OpenIdConnectProtocols.OpenIdConnectConfiguration>(
+            _configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
                 $"{ISSUER}.well-known/openid-configuration",
-                new OpenIdConnectProtocols.OpenIdConnectConfigurationRetriever(),
+                new OpenIdConnectConfigurationRetriever(),
                 documentRetriever
             );
         }
@@ -36,7 +36,7 @@ namespace AnotherNameSpace
             if (value?.Scheme != "Bearer")
                 return null;
 
-            var config = _configurationManager.GetConfigurationAsync(CancellationToken.None).Result; // await here was creating a weird error
+            var config = _configurationManager.GetConfigurationAsync(CancellationToken.None).Result; // originally await ... but does not work
 
             var validationParameter = new TokenValidationParameters
             {

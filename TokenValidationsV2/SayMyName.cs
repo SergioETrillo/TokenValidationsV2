@@ -1,31 +1,48 @@
 
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
+using AnotherNameSpace;
 
 namespace TokenValidationsV2
 {
     public static class SayMyName
     {
         [FunctionName("SayMyName")]
-        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route=null)]HttpRequestMessage req, TraceWriter log)
+        //public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
 
             log.Info("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            // Authentication boilerplate code start
+            ClaimsPrincipal principal;
+            if ((principal = await AuthValidator.ValidateTokenAsync(req.Headers.Authorization)) == null)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
+            // Authentication boilerplate code end
 
-            string requestBody = new StreamReader(req.Body).ReadToEnd();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            return req.CreateResponse(HttpStatusCode.OK, "Hello " + principal.Identity.Name);
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+            //string name = req.Query["name"];
+
+            //string requestBody = new StreamReader(req.Body).ReadToEnd();
+            //dynamic data = JsonConvert.DeserializeObject(requestBody);
+            //name = name ?? data?.name;
+
+            //return name != null
+            //    ? (ActionResult)new OkObjectResult($"Hello, {name}")
+            //    : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
         }
     }
 }
