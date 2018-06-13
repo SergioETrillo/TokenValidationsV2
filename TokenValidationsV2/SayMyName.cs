@@ -1,16 +1,18 @@
 
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using Newtonsoft.Json;
+using AnotherNameSpace;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using AnotherNameSpace;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 
 namespace TokenValidationsV2
 {
@@ -19,7 +21,6 @@ namespace TokenValidationsV2
         [FunctionName("SayMyName")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route=null)]HttpRequestMessage req, TraceWriter log)
-        //public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
 
             log.Info("C# HTTP trigger function processed a request.");
@@ -32,17 +33,33 @@ namespace TokenValidationsV2
             }
             // Authentication boilerplate code end
 
-            return req.CreateResponse(HttpStatusCode.OK, "Hello " + principal.Identity.Name);
+            // parse query parameter
+            string queryStr = req.RequestUri.Query;
+            if (!String.IsNullOrEmpty(queryStr))
+            {
+                
+            }
+            string name = req.RequestUri.Query;
+            if (!string.IsNullOrEmpty(name) && name.StartsWith("?"))
+            {
+                name = name.Substring(1);
+            }
 
-            //string name = req.Query["name"];
+            // Get request body
+            dynamic data = await req.Content.ReadAsAsync<object>();
 
-            //string requestBody = new StreamReader(req.Body).ReadToEnd();
-            //dynamic data = JsonConvert.DeserializeObject(requestBody);
-            //name = name ?? data?.name;
+            // Set name to query string or body data
+            name = name ?? data?.name;
 
-            //return name != null
-            //    ? (ActionResult)new OkObjectResult($"Hello, {name}")
-            //    : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+            return name == null
+                ? new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(@"Please pass a name on the query string or in the request body")
+                }
+                : new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent($"Hello {name}")
+                };
         }
     }
 }

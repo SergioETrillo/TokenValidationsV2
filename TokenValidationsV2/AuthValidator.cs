@@ -17,8 +17,8 @@ namespace AnotherNameSpace
     {
         private static readonly IConfigurationManager<OpenIdConnectConfiguration> _configurationManager;
 
-        private static readonly string ISSUER = "https://sergiotest.eu.auth0.com//";
-        private static readonly string AUDIENCE = "http://functionhellonamevalidatetokens.azurewebsites.net/"; // TODO - enter your audience here. i.e. "https://api.wolftracker.com"
+        private static readonly string ISSUER = "https://sergiotest.eu.auth0.com/";
+        private static readonly string AUDIENCE = "http://localhost:7071/api/SayMyName/"; // TODO - enter your audience here. i.e. "https://api.wolftracker.com"
 
         static AuthValidator()
         {
@@ -74,11 +74,7 @@ namespace AnotherNameSpace
                 }
                 catch (Exception ex)
                 {
-                    if (ex is System.Reflection.ReflectionTypeLoadException)
-                    {
-                        var typeLoadException = ex as ReflectionTypeLoadException;
-                        var loaderExceptions = typeLoadException.LoaderExceptions;
-                    }
+                    return null;
                 }
             }
 
